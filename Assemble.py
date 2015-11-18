@@ -21,7 +21,11 @@
  Credits to the Goonstation wiki for that code snippet.
 '''
 
-import re
+import sys
+
+if len(sys.argv) == 1:
+	print "No argument provided"
+	quit()
 
 # Associative array of opname: opcode.
 codes = {
@@ -68,7 +72,7 @@ operand_valids = {
 def error(message, line):
 	print "\033[91mAssembly error: %s on line %s.\033[0m" % (message, line) # Those weird characters are colours, thanks Stackoverflow.
 
-file_name = "test.txt"
+file_name = sys.argv[1]
 
 # Cache for the current word.
 word = ""
