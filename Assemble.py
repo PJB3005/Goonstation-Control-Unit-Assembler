@@ -42,35 +42,31 @@ codes = {
 	"SKZ":  "E"
 }
 
-# Associative array of opname: operand regex, note that all are case INSENSTIVE.
+# Associative array of opname: valid characters, note that all are case INSENSTIVE (should be written uppercase in this list though).
 # Unincluded opcodes are assumed to not having operands.
 # To make sure the code doesn't have invalid operands.
-operand_regex = {
-	"LD":   "[0-9a-f]",
-	"LDC":  "[0-9a-f]",
-	"AND":  "[0-7]",
-	"ANDC": "[0-7]",
-	"OR":   "[0-7]",
-	"ORC":  "[0-7]",
-	"XNOR": "[0-7]",
-	"STO":  "[0-9a-f]",
-	"STOC": "[0-9a-f]",
-	"IEN":  "[0-7]",
-	"OEN":  "[0-7]",
-	"JMP":  "[0-9a-f]"
-}
+valids_num = ["0", "1", "2", "3", "4", "5", "6", "7"]
 
-# Makes the above array have the actual regex objects as associative value.
-def construct_op_regex():
-	for opcode in operand_regex:
-		regex = re.compile(operand_regex[opcode])
-		operand_regex[opcode] = regex
+valids_hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
+
+operand_valids = {
+	"LD":   valids_hex,
+	"LDC":  valids_hex,
+	"AND":  valids_num,
+	"ANDC": valids_num,
+	"OR":   valids_num,
+	"ORC":  valids_num,
+	"XNOR": valids_num,
+	"STO":  valids_hex,
+	"STOC": valids_hex,
+	"IEN":  valids_num,
+	"OEN":  valids_num,
+	"JMP":  valids_hex
+}
 
 # Blew it.
 def error(message, line):
 	print "\033[91mAssembly error: %s on line %s.\033[0m" % (message, line) # Those weird characters are colours, thanks Stackoverflow.
-
-construct_op_regex()
 
 file_name = "test.txt"
 
@@ -92,30 +88,28 @@ line = 1
 # Do I need a comment here?
 output = ""
 
-print file(file_name)
-
 f = open(file_name)
 
 char = f.read(1)
 
 while char:
-	print "char is " + char
+	# print "char is " + char
 	if char == ";": # Start a comment.
-		print "Starting comment"
+		# print "Starting comment"
 		comment = True
 
 	elif char == "\n":
-		print "newline"
+		# print "newline"
 		line += 1
 		comment = False
 		if awaiting_operand:
 			error("missing operand for opcode '%s'" % word, line)
-			print "WIP output:" + output
+			# print "WIP output:" + output
 			quit()
 
 		elif not word in codes:
 			error("unknown opcode '%s'" % word, line)
-			print "WIP output:" + output
+			# print "WIP output:" + output
 			quit()
 
 		word = ""
@@ -129,22 +123,22 @@ while char:
 		if len(word) and not word_finished:
 			if not (word in codes):
 				error("unknown opcode '%s'" % word, line)
-				print "WIP output:" + output
+				# print "WIP output:" + output
 				quit()
 	
 			word_finished = True
 	
 			output += codes[word]
 	
-			if word in operand_regex:
+			if word in operand_valids:
 				awaiting_operand = True
 
 	elif awaiting_operand:
-		regex = operand_regex[word]
-		print regex.search(char, re.IGNORECASE)
-		if regex.search(char, re.IGNORECASE) != None:
+		upper = char.upper()
+
+		if not (upper in operand_valids[word]):
 			error("invalid operand '%s' for opcode '%s'" % (char, word), line)
-			print "WIP output:" + output
+			# print "WIP output:" + output
 			quit()
 
 		output += char
@@ -156,7 +150,7 @@ while char:
 
 		else:
 			error("unexpected token '%s'" % char, line)
-			print "WIP output:" + output
+			# print "WIP output:" + output
 			quit()
 
 	char = f.read(1)
