@@ -92,6 +92,25 @@ line = 1
 # Do I need a comment here?
 output = ""
 
+def attempt_word_finish():
+	global word_finished
+	if len(word) and not (word_finished):
+		if not (word in codes):
+			error("unknown opcode '%s'" % word, line)
+			# print "WIP output:" + output
+			quit()
+
+		word_finished = True
+
+		global output
+		output += codes[word]
+
+		if word in operand_valids:
+			global awaiting_operand
+			awaiting_operand = True
+		else:
+			output += "0" # Opcodes without operand still need a 0 after them.
+
 f = open(file_name)
 
 char = f.read(1)
@@ -104,8 +123,11 @@ while char:
 
 	elif char == "\n":
 		# print "newline"
-		line += 1
+
+		attempt_word_finish()
+
 		comment = False
+			
 		if awaiting_operand:
 			error("missing operand for opcode '%s'" % word, line)
 			# print "WIP output:" + output
@@ -119,23 +141,13 @@ while char:
 		word = ""
 		word_finished = False
 		awaiting_operand = False
+		line += 1
 
 	elif comment:
 		None
 
 	elif char.isspace():
-		if len(word) and not word_finished:
-			if not (word in codes):
-				error("unknown opcode '%s'" % word, line)
-				# print "WIP output:" + output
-				quit()
-	
-			word_finished = True
-	
-			output += codes[word]
-	
-			if word in operand_valids:
-				awaiting_operand = True
+		attempt_word_finish()
 
 	elif awaiting_operand:
 		upper = char.upper()
@@ -161,3 +173,4 @@ while char:
 
 f.close()
 print output
+	
